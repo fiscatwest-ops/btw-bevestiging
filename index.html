@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTW-documenten bevestigen | Fisc@West</title>
+    <!-- Google reCAPTCHA -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #333333;
+            background-color: #f7fafc;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: #ffffff;
+            max-width: 520px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background-color: #1a365d;
+            color: #ffffff;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-family: Georgia, serif;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .form-container {
+            padding: 32px 24px;
+        }
+        
+        .info-box {
+            background-color: #f7fafc;
+            border-left: 4px solid #1a365d;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .info-box p {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 24px;
+        }
+        
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #1a365d;
+        }
+        
+        .label-hint {
+            font-weight: normal;
+            color: #666;
+            font-size: 13px;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.2s;
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #1a365d;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .upload-area:hover {
+            border-color: #1a365d;
+            background-color: #f7fafc;
+        }
+        
+        .upload-area.dragover {
+            border-color: #1a365d;
+            background-color: #edf2f7;
+        }
+        
+        .upload-area input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        
+        .upload-text {
+            font-weight: bold;
+            color: #1a365d;
+            margin-bottom: 4px;
+        }
+        
+        .upload-hint {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .file-list {
+            margin-top: 16px;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: #f7fafc;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .file-item-name {
+            font-size: 14px;
+            color: #333;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            flex: 1;
+            margin-right: 12px;
+        }
+        
+        .file-item-remove {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        .file-item-remove:hover {
+            background: #c53030;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background: #fffaf0;
+            border: 1px solid #f6ad55;
+            border-radius: 6px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        
+        .checkbox-group label {
+            font-weight: normal;
+            margin-bottom: 0;
+            color: #333;
+            cursor: pointer;
+        }
+        
+        .recaptcha-container {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background-color: #1a365d;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .submit-btn:hover {
+            background-color: #2d4a6f;
+        }
+        
+        .submit-btn:disabled {
+            background-color: #a0aec0;
+            cursor: not-allowed;
+        }
+        
+        .submit-btn.loading {
+            position: relative;
+            color: transparent;
+        }
+        
+        .submit-btn.loading::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 3px solid #ffffff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #fed7d7;
+            border: 1px solid #fc8181;
+            color: #c53030;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 24px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        .success-container {
+            display: none;
+            text-align: center;
+            padding: 48px 24px;
+        }
+        
+        .success-container.show {
+            display: block;
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #c6f6d5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 40px;
+        }
+        
+        .success-container h2 {
+            color: #1a365d;
+            margin-bottom: 12px;
+        }
+        
+        .success-container p {
+            color: #666;
+        }
+        
+        .form-content {
+            display: block;
+        }
+        
+        .form-content.hidden {
+            display: none;
+        }
+        
+        .footer-help {
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+        }
+        
+        .footer-help p {
+            font-size: 13px;
+            color: #666;
+        }
+        
+        .footer-help a {
+            color: #1a365d;
+            text-decoration: none;
+        }
+        
+        .footer-help a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BTW-documenten Bevestiging</h1>
+            <p>Fisc@West Accountancy</p>
+        </div>
+        
+        <div class="form-container">
+            <div class="form-content" id="formContent">
+                <div class="info-box">
+                    <p>Bevestig hieronder dat alle documenten voor uw BTW-aangifte zijn opgeladen. U kunt eventueel nog extra documenten toevoegen.</p>
+                </div>
+                
+                <div class="error-message" id="errorMessage">
+                    <p id="errorText">Er is een fout opgetreden. Probeer het opnieuw.</p>
+                </div>
+                
+                <form id="confirmForm">
+                    <div class="form-group">
+                        <label for="vatNumber">Ondernemingsnummer</label>
+                        <input 
+                            type="text" 
+                            id="vatNumber" 
+                            name="vatNumber" 
+                            placeholder="bv. 0562845171"
+                            required
+                            maxlength="15"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="message">
+                            Mededeling
+                            <span class="label-hint">(optioneel)</span>
+                        </label>
+                        <textarea 
+                            id="message" 
+                            name="message" 
+                            rows="3"
+                            placeholder="bv. Factuur X volgt nog, bankuittreksel december toegevoegd..."
+                        ></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>
+                            Extra documenten toevoegen
+                            <span class="label-hint">(optioneel, max 10 bestanden)</span>
+                        </label>
+                        <div class="upload-area" id="uploadArea">
+                            <input 
+                                type="file" 
+                                id="fileInput" 
+                                multiple 
+                                accept="image/*,.pdf"
+                            >
+                            <div class="upload-icon">📎</div>
+                            <div class="upload-text">Klik of sleep bestanden hierheen</div>
+                            <div class="upload-hint">JPG, PNG, HEIC, PDF – max 10MB per bestand</div>
+                        </div>
+                        <div class="file-list" id="fileList"></div>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <input 
+                            type="checkbox" 
+                            id="confirmUpload" 
+                            name="confirmUpload"
+                            required
+                        >
+                        <label for="confirmUpload">
+                            Ik bevestig dat <strong>alle documenten</strong> voor de BTW-aangifte zijn opgeladen en volledig zijn.
+                        </label>
+                    </div>
+                    
+                    <div class="recaptcha-container">
+                        <!-- VERVANG DEZE SITE KEY MET JE EIGEN KEY -->
+                        <div class="g-recaptcha" data-sitekey="6Ld9cFksAAAAAPAvlhk9kRFWANwvAvHa3pm-ORSJ"></div>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        Bevestiging verzenden ➜
+                    </button>
+                </form>
+            </div>
+            
+            <div class="success-container" id="successContainer">
+                <div class="success-icon">✓</div>
+                <h2>Bedankt voor uw bevestiging!</h2>
+                <p>Uw bevestiging is succesvol ontvangen. Wij verwerken uw BTW-aangifte zo snel mogelijk.</p>
+                <p style="margin-top: 16px; font-size: 14px; color: #666;">U ontvangt een bevestiging per e-mail.</p>
+            </div>
+            
+            <div class="footer-help">
+                <p>Werkt de link niet? Stuur een bericht naar: <a href="mailto:david@fiscatwest.be">david@fiscatwest.be</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ===========================================
+        // CONFIGURATIE
+        // ===========================================
+        const CONFIG = {
+            // Zapier Webhook URL
+            ZAPIER_WEBHOOK_URL: 'https://hooks.zapier.com/hooks/catch/26186819/uqgurrx/',
+            
+            // Cloudinary configuratie
+            CLOUDINARY_CLOUD_NAME: 'dssqewi7x',
+            CLOUDINARY_UPLOAD_PRESET: 'btw-bevestiging',
+            
+            // Bestand limieten
+            MAX_FILES: 10,
+            MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+        };
+        // ===========================================
+        
+        // DOM Elements
+        const form = document.getElementById('confirmForm');
+        const formContent = document.getElementById('formContent');
+        const successContainer = document.getElementById('successContainer');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+        const submitBtn = document.getElementById('submitBtn');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const uploadArea = document.getElementById('uploadArea');
+        const vatNumberInput = document.getElementById('vatNumber');
+        
+        // State
+        let selectedFiles = [];
+        
+        // VAT Number formatting
+        vatNumberInput.addEventListener('input', function(e) {
+            // Alleen cijfers behouden
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            // Max 10 cijfers
+            value = value.substring(0, 10);
+            e.target.value = value;
+        });
+        
+        // File upload handling
+        fileInput.addEventListener('change', handleFileSelect);
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        function handleFileSelect(e) {
+            handleFiles(e.target.files);
+        }
+        
+        function handleFiles(files) {
+            for (let file of files) {
+                if (selectedFiles.length >= CONFIG.MAX_FILES) {
+                    showError(`Maximum ${CONFIG.MAX_FILES} bestanden toegestaan.`);
+                    break;
+                }
+                
+                if (file.size > CONFIG.MAX_FILE_SIZE) {
+                    showError(`"${file.name}" is te groot. Maximum 10MB per bestand.`);
+                    continue;
+                }
+                
+                // Check of bestand al geselecteerd is
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                }
+            }
+            
+            updateFileList();
+        }
+        
+        function updateFileList() {
+            fileList.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = 'file-item';
+                item.innerHTML = `
+                    <span class="file-item-name">${file.name}</span>
+                    <button type="button" class="file-item-remove" data-index="${index}">Verwijder</button>
+                `;
+                fileList.appendChild(item);
+            });
+            
+            // Event listeners voor verwijder knoppen
+            document.querySelectorAll('.file-item-remove').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.dataset.index);
+                    selectedFiles.splice(index, 1);
+                    updateFileList();
+                });
+            });
+        }
+        
+        // Upload file to Cloudinary
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CONFIG.CLOUDINARY_UPLOAD_PRESET);
+            
+            const response = await fetch(
+                `https://api.cloudinary.com/v1_1/${CONFIG.CLOUDINARY_CLOUD_NAME}/auto/upload`,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            
+            if (!response.ok) {
+                throw new Error('Upload mislukt');
+            }
+            
+            const data = await response.json();
+            return data.secure_url;
+        }
+        
+        // Form submission
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Verberg eerdere errors
+            errorMessage.classList.remove('show');
+            
+            // Check reCAPTCHA
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse) {
+                showError('Bevestig dat u geen robot bent.');
+                return;
+            }
+            
+            // Valideer ondernemingsnummer
+            const vatNumber = vatNumberInput.value.replace(/[^0-9]/g, '');
+            if (vatNumber.length < 9 || vatNumber.length > 10) {
+                showError('Voer een geldig ondernemingsnummer in (9 of 10 cijfers).');
+                return;
+            }
+            
+            // Start loading
+            submitBtn.classList.add('loading');
+            submitBtn.disabled = true;
+            
+            try {
+                // Upload bestanden naar Cloudinary
+                let fileUrls = [];
+                if (selectedFiles.length > 0) {
+                    for (let file of selectedFiles) {
+                        const url = await uploadToCloudinary(file);
+                        fileUrls.push(url);
+                    }
+                }
+                
+                // Stuur data naar Zapier
+                const payload = {
+                    vatNumber: vatNumber,
+                    vatNumberFormatted: formatVatNumber(vatNumber),
+                    message: document.getElementById('message').value || '',
+                    fileUrls: fileUrls,
+                    fileCount: fileUrls.length,
+                    confirmed: true,
+                    timestamp: new Date().toISOString(),
+                    recaptchaToken: recaptchaResponse
+                };
+                
+                const response = await fetch(CONFIG.ZAPIER_WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                    mode: 'no-cors' // Zapier webhooks vereisen dit
+                });
+                
+                // Success!
+                formContent.classList.add('hidden');
+                successContainer.classList.add('show');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Er is een fout opgetreden. Probeer het later opnieuw of contacteer ons.');
+                submitBtn.classList.remove('loading');
+                submitBtn.disabled = false;
+                grecaptcha.reset();
+            }
+        });
+        
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('show');
+            errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        function formatVatNumber(num) {
+            const padded = num.padStart(10, '0');
+            return 'BE ' + padded.substring(0, 4) + '.' + padded.substring(4, 7) + '.' + padded.substring(7);
+        }
+    </script>
+</body>
+</html>
