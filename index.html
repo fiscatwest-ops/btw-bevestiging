@@ -606,24 +606,22 @@
                     }
                 }
                 
-                // Stuur data naar Zapier
-                const payload = {
-                    vatNumber: vatNumber,
-                    vatNumberFormatted: formatVatNumber(vatNumber),
-                    message: document.getElementById('message').value || '',
-                    fileUrls: fileUrls,
-                    fileCount: fileUrls.length,
-                    confirmed: true,
-                    timestamp: new Date().toISOString(),
-                    recaptchaToken: recaptchaResponse
-                };
+                // Stuur data naar Zapier als form data (beter parsing in Zapier)
+                const formData = new URLSearchParams();
+                formData.append('vatNumber', vatNumber);
+                formData.append('vatNumberFormatted', formatVatNumber(vatNumber));
+                formData.append('message', document.getElementById('message').value || '');
+                formData.append('fileUrls', fileUrls.join(','));
+                formData.append('fileCount', fileUrls.length.toString());
+                formData.append('confirmed', 'true');
+                formData.append('timestamp', new Date().toISOString());
                 
                 const response = await fetch(CONFIG.ZAPIER_WEBHOOK_URL, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: JSON.stringify(payload),
+                    body: formData.toString(),
                     mode: 'no-cors' // Zapier webhooks vereisen dit
                 });
                 
