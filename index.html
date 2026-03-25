@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTW-documenten Bevestigen | Fisc@West</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .form-container {
+            padding: 30px;
+        }
+        
+        .info-box {
+            background: #e8f4fc;
+            border-left: 4px solid #2d5a87;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 0 8px 8px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1e3a5f;
+        }
+        
+        label .optional {
+            font-weight: normal;
+            color: #666;
+            font-size: 13px;
+        }
+        
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #2d5a87;
+            box-shadow: 0 0 0 3px rgba(45, 90, 135, 0.1);
+        }
+        
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        /* File Upload */
+        .file-upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #2d5a87;
+            background: #f0f7ff;
+        }
+        
+        .file-upload-area.dragover {
+            border-color: #2d5a87;
+            background: #e8f4fc;
+        }
+        
+        .file-upload-area .icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .file-upload-area input[type="file"] {
+            display: none;
+        }
+        
+        .file-list {
+            margin-top: 15px;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        
+        .file-item .name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .file-item .remove {
+            color: #e74c3c;
+            cursor: pointer;
+            padding: 5px;
+            margin-left: 10px;
+        }
+        
+        /* Checkbox */
+        .checkbox-group {
+            background: #fff8e6;
+            border: 2px solid #f5a623;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .checkbox-group label {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            font-weight: normal;
+            color: #333;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            margin-top: 2px;
+            cursor: pointer;
+        }
+        
+        /* reCAPTCHA */
+        .recaptcha-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #c05621 0%, #dd6b20 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .submit-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(192, 86, 33, 0.4);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Messages */
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .message.error {
+            background: #fdeaea;
+            border-left: 4px solid #e74c3c;
+            color: #c0392b;
+            display: block;
+        }
+        
+        .message.success {
+            background: #e8f8f0;
+            border-left: 4px solid #27ae60;
+            color: #1e8449;
+            display: block;
+        }
+        
+        /* Success Screen */
+        .success-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 30px;
+        }
+        
+        .success-screen .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .success-screen h2 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+        
+        .success-screen p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .success-screen .details {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .success-screen .details p {
+            margin: 8px 0;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 13px;
+            border-top: 1px solid #eee;
+        }
+        
+        .footer a {
+            color: #2d5a87;
+            text-decoration: none;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 480px) {
+            .container {
+                margin: 10px;
+                border-radius: 12px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            .form-container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📄 BTW-documenten bevestigen</h1>
+            <p>Fisc@West BV</p>
+        </div>
+        
+        <div id="formContainer" class="form-container">
+            <div class="info-box">
+                Bevestig hieronder dat u alle boekhoudstukken voor de BTW-aangifte heeft opgeladen. 
+                U kunt ook extra documenten toevoegen (dagontvangstenboek, bonnetjes, etc.).
+            </div>
+            
+            <div id="errorMessage" class="message"></div>
+            
+            <form id="confirmForm">
+                <div class="form-group">
+                    <label for="vatNumber">Ondernemingsnummer</label>
+                    <input type="text" 
+                           id="vatNumber" 
+                           name="vatNumber" 
+                           placeholder="0123.456.789" 
+                           required
+                           autocomplete="off">
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Mededeling <span class="optional">(optioneel)</span></label>
+                    <textarea id="message" 
+                              name="message" 
+                              placeholder="Eventuele opmerkingen of vragen..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Extra documenten toevoegen <span class="optional">(optioneel, max 10 bestanden)</span></label>
+                    <div class="file-upload-area" id="dropZone">
+                        <div class="icon">📎</div>
+                        <p><strong>Klik of sleep bestanden hierheen</strong></p>
+                        <p style="font-size: 13px; color: #666;">JPG, PNG, HEIC, PDF – max 10MB per bestand</p>
+                        <input type="file" id="fileInput" multiple accept=".jpg,.jpeg,.png,.heic,.pdf">
+                    </div>
+                    <div class="file-list" id="fileList"></div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <label>
+                        <input type="checkbox" id="confirmCheckbox" required>
+                        <span>Ik bevestig dat <strong>alle documenten</strong> voor de BTW-aangifte zijn opgeladen en volledig zijn.</span>
+                    </label>
+                </div>
+                
+                <div class="recaptcha-container">
+                    <div class="g-recaptcha" data-sitekey="6Ld9cFksAAAAAPAvlhk9kRFWANwvAvHa3pm-ORSJ"></div>
+                </div>
+                
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <span id="btnText">Bevestiging verzenden</span>
+                    <span id="btnSpinner" class="spinner" style="display: none;"></span>
+                    <span>→</span>
+                </button>
+            </form>
+        </div>
+        
+        <div id="successScreen" class="success-screen">
+            <div class="icon">✅</div>
+            <h2>Bedankt voor uw bevestiging!</h2>
+            <p>Uw bevestiging is succesvol ontvangen en verwerkt.</p>
+            <div class="details">
+                <p><strong>Klant:</strong> <span id="resultName">-</span></p>
+                <p><strong>BTW-nummer:</strong> <span id="resultVat">-</span></p>
+                <p><strong>Taak:</strong> <span id="resultTask">-</span></p>
+                <p><strong>Status:</strong> <span style="color: #f5a623;">● In behandeling</span></p>
+            </div>
+            <p>Wij verwerken uw aangifte zo snel mogelijk.</p>
+        </div>
+        
+        <div class="footer">
+            <p>Fisc@West BV · ITAA erkend accountantskantoor</p>
+            <p style="margin-top: 5px;">
+                Werkt de link niet? Contacteer ons via 
+                <a href="mailto:david@fiscatwest.be">david@fiscatwest.be</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // ===========================================
+        // CONFIGURATIE
+        // ===========================================
+        const CONFIG = {
+            // API endpoint (Vercel serverless function)
+            API_URL: '/api/confirm-btw',
+            
+            // Cloudinary configuratie
+            CLOUDINARY_CLOUD_NAME: 'dssqewl7x',
+            CLOUDINARY_UPLOAD_PRESET: 'btw-bevestiging',
+            
+            // Bestand limieten
+            MAX_FILES: 10,
+            MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+        };
+        // ===========================================
+
+        let selectedFiles = [];
+
+        // DOM Elements
+        const form = document.getElementById('confirmForm');
+        const vatInput = document.getElementById('vatNumber');
+        const messageInput = document.getElementById('message');
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const fileList = document.getElementById('fileList');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnSpinner = document.getElementById('btnSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+        const formContainer = document.getElementById('formContainer');
+        const successScreen = document.getElementById('successScreen');
+
+        // VAT number formatting
+        vatInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/[^0-9]/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+            
+            // Format: 0123.456.789
+            if (value.length > 7) {
+                value = value.slice(0, 4) + '.' + value.slice(4, 7) + '.' + value.slice(7);
+            } else if (value.length > 4) {
+                value = value.slice(0, 4) + '.' + value.slice(4);
+            }
+            
+            e.target.value = value;
+        });
+
+        // File handling
+        dropZone.addEventListener('click', () => fileInput.click());
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'];
+            
+            for (const file of files) {
+                if (selectedFiles.length >= CONFIG.MAX_FILES) {
+                    showError(`Maximum ${CONFIG.MAX_FILES} bestanden toegestaan.`);
+                    break;
+                }
+                
+                if (!allowedTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.heic')) {
+                    showError(`Bestandstype niet toegestaan: ${file.name}`);
+                    continue;
+                }
+                
+                if (file.size > CONFIG.MAX_FILE_SIZE) {
+                    showError(`Bestand te groot (max 10MB): ${file.name}`);
+                    continue;
+                }
+                
+                // Check for duplicates
+                if (selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    continue;
+                }
+                
+                selectedFiles.push(file);
+            }
+            
+            renderFileList();
+        }
+
+        function renderFileList() {
+            fileList.innerHTML = selectedFiles.map((file, index) => `
+                <div class="file-item">
+                    <span class="name">📄 ${file.name}</span>
+                    <span style="color: #666; font-size: 12px;">${formatFileSize(file.size)}</span>
+                    <span class="remove" onclick="removeFile(${index})">✕</span>
+                </div>
+            `).join('');
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.className = 'message error';
+            errorMessage.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function clearError() {
+            errorMessage.textContent = '';
+            errorMessage.className = 'message';
+        }
+
+        function setLoading(loading) {
+            submitBtn.disabled = loading;
+            btnText.textContent = loading ? 'Verwerken...' : 'Bevestiging verzenden';
+            btnSpinner.style.display = loading ? 'block' : 'none';
+        }
+
+        // Upload to Cloudinary
+        async function uploadToCloudinary(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CONFIG.CLOUDINARY_UPLOAD_PRESET);
+            
+            const response = await fetch(
+                `https://api.cloudinary.com/v1_1/${CONFIG.CLOUDINARY_CLOUD_NAME}/auto/upload`,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+            
+            if (!response.ok) {
+                throw new Error(`Upload failed: ${file.name}`);
+            }
+            
+            const data = await response.json();
+            return {
+                name: file.name,
+                url: data.secure_url,
+                type: file.type,
+                size: file.size
+            };
+        }
+
+        // Form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearError();
+
+            // Validate checkbox
+            if (!document.getElementById('confirmCheckbox').checked) {
+                showError('Gelieve de bevestiging aan te vinken.');
+                return;
+            }
+
+            // Validate reCAPTCHA
+            const recaptchaResponse = grecaptcha.getResponse();
+            if (!recaptchaResponse) {
+                showError('Gelieve de CAPTCHA te voltooien.');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                // Upload files to Cloudinary first
+                let fileUrls = [];
+                if (selectedFiles.length > 0) {
+                    btnText.textContent = 'Bestanden uploaden...';
+                    
+                    for (let i = 0; i < selectedFiles.length; i++) {
+                        btnText.textContent = `Bestand ${i + 1}/${selectedFiles.length} uploaden...`;
+                        const result = await uploadToCloudinary(selectedFiles[i]);
+                        fileUrls.push(result);
+                    }
+                }
+
+                btnText.textContent = 'Bevestiging verwerken...';
+
+                // Send to our API (direct to AdminPulse)
+                const cleanVat = vatInput.value.replace(/[^0-9]/g, '');
+                
+                const response = await fetch(CONFIG.API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        vatNumber: cleanVat,
+                        vatNumberFormatted: 'BE ' + vatInput.value,
+                        message: messageInput.value || null,
+                        fileUrls: fileUrls,
+                        recaptchaToken: recaptchaResponse,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || result.detail || 'Er is een fout opgetreden');
+                }
+
+                // Show success screen
+                formContainer.style.display = 'none';
+                successScreen.style.display = 'block';
+                
+                // Fill in details
+                document.getElementById('resultName').textContent = result.relation?.name || '-';
+                document.getElementById('resultVat').textContent = result.relation?.vatNumber || cleanVat;
+                document.getElementById('resultTask').textContent = result.task?.name || 'BTW-aangifte';
+
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Er is een fout opgetreden. Probeer het later opnieuw of contacteer ons.');
+                grecaptcha.reset();
+            } finally {
+                setLoading(false);
+            }
+        });
+    </script>
+</body>
+</html>
