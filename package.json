@@ -1,18 +1,7 @@
 {
   "name": "btw-bevestiging",
   "version": "2.0.0",
+  "type": "module",
   "description": "BTW-documenten bevestiging formulier - Fisc@West BV",
-  "private": true,
-  "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'No build step required'",
-    "start": "vercel dev"
-  },
-  "keywords": [
-    "btw",
-    "adminpulse",
-    "fiscatwest"
-  ],
-  "author": "Fisc@West BV",
-  "license": "UNLICENSED"
+  "private": true
 }
