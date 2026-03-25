@@ -192,7 +192,7 @@ export default async function handler(req, res) {
     // ============================================
     // Status: 0 = To-do, 1 = In Progress, 2 = Done
     const updateResponse = await fetch(
-      `${API_BASE}/tasks/${subtaskToUpdate.id}`,
+      `${API_BASE}/tasks/${targetSubtask.id}`,
       {
         method: 'PUT',
         headers: {
@@ -230,7 +230,7 @@ export default async function handler(req, res) {
       task: {
         name: btwTask.name,
         deadline: btwTask.deadline,
-        subtask: subtaskToUpdate.name,
+        subtask: targetSubtask.name,
         newStatus: 'In Progress'
       },
       receivedData: {
