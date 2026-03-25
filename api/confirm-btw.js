@@ -103,12 +103,16 @@ export default async function handler(req, res) {
 
     const tasksData = await tasksResponse.json();
     
-    // Zoek de BTW-aangifte taak die nog niet volledig is afgerond
-    // en sorteer op deadline (eerst eerstvolgende)
+    // Zoek de BTW-aangifte taak (niet BTW listing of IC listing)
+    // Filter op "btw-aangifte" of "btw aangifte" en sorteer op deadline
     const btwTasks = (tasksData.results || [])
       .filter(task => {
         const name = (task.name || task.templateName || '').toLowerCase();
-        return name.includes('btw') && task.status !== 2; // status 2 = Done
+        // Moet "btw" bevatten maar NIET "listing" (dat is IC opgave)
+        const isBtwTask = name.includes('btw') && !name.includes('listing');
+        // Of specifiek "aangifte" bevatten
+        const isAangifte = name.includes('aangifte');
+        return (isBtwTask || isAangifte) && task.status !== 2; // status 2 = Done
       })
       .sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
 
@@ -143,31 +147,45 @@ export default async function handler(req, res) {
 
     const taskDetail = await taskDetailResponse.json();
     
-    // Zoek de subtaak "Alle documenten binnen of bevestiging..."
-    const targetSubtask = (taskDetail.subtasks || []).find(st => {
-      const name = (st.name || st.templateName || '').toLowerCase();
-      return name.includes('documenten binnen') || 
-             name.includes('bevestiging') ||
-             name.includes('alles opgeladen');
+    console.log(`Subtaken gevonden: ${(taskDetail.subtasks || []).length}`);
+    (taskDetail.subtasks || []).forEach((st, i) => {
+      console.log(`  ${i+1}. ${st.name} (priority: ${st.priority}, status: ${st.status})`);
     });
-
+    
+    // Zoek de subtaak - meerdere strategieën:
+    // 1. Eerst zoeken op naam met "documenten" + "bevestiging" of "opgeladen"
+    // 2. Dan zoeken op priority 3 (derde subtaak in de template)
+    // 3. Fallback: eerste subtaak met "document" in de naam
+    
+    let targetSubtask = (taskDetail.subtasks || []).find(st => {
+      const name = (st.name || '').toLowerCase();
+      return (name.includes('documenten') && (name.includes('bevestiging') || name.includes('opgeladen')));
+    });
+    
     if (!targetSubtask) {
-      // Fallback: zoek subtaak met "documenten" in de naam
-      const fallbackSubtask = (taskDetail.subtasks || []).find(st => {
-        const name = (st.name || st.templateName || '').toLowerCase();
+      // Probeer priority 3 (check zowel string als nummer)
+      targetSubtask = (taskDetail.subtasks || []).find(st => 
+        st.priority === 3 || st.priority === '3' || st.priority === "3"
+      );
+    }
+    
+    if (!targetSubtask) {
+      // Fallback: zoek subtaak met "document" in de naam
+      targetSubtask = (taskDetail.subtasks || []).find(st => {
+        const name = (st.name || '').toLowerCase();
         return name.includes('document');
       });
-      
-      if (!fallbackSubtask) {
-        return res.status(404).json({ 
-          error: 'Subtaak niet gevonden',
-          detail: 'Kon de bevestigings-subtaak niet vinden in de BTW-taak'
-        });
-      }
     }
 
-    const subtaskToUpdate = targetSubtask || fallbackSubtask;
-    console.log(`Subtaak gevonden: ${subtaskToUpdate.name}, huidige status: ${subtaskToUpdate.status}`);
+    if (!targetSubtask) {
+      return res.status(404).json({ 
+        error: 'Subtaak niet gevonden',
+        detail: 'Kon de bevestigings-subtaak niet vinden in de BTW-taak',
+        availableSubtasks: (taskDetail.subtasks || []).map(st => st.name)
+      });
+    }
+
+    console.log(`Subtaak gevonden: ${targetSubtask.name}, huidige status: ${targetSubtask.status}`);
 
     // ============================================
     // STAP 4: Update subtaak naar "In Progress"
