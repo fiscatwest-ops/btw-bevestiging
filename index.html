@@ -511,10 +511,11 @@
                         
                         const result = await uploadToCloudinary(uploadedFiles[i].file);
                         uploadedFiles[i].status = 'done';
-                        uploadedFiles[i].url = result.secure_url;
+                        uploadedFiles[i].url = fixedUrl;
+const fixedUrl = result.secure_url.replace('/image/upload/', '/raw/upload/');
                         cloudinaryResults.push({
                             name: uploadedFiles[i].name,
-                            url: result.secure_url
+                            url: fixedUrl
                         });
                         renderFileList();
                     }
