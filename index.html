@@ -466,7 +466,7 @@
             formData.append('folder', 'btw-bevestiging');
 
             const res = await fetch(
-                `https://api.cloudinary.com/v1_1/${CONFIG.CLOUDINARY_CLOUD_NAME}/auto/upload`,
+                `https://api.cloudinary.com/v1_1/${CONFIG.CLOUDINARY_CLOUD_NAME}/raw/upload`,
                 { method: 'POST', body: formData }
             );
 
@@ -508,14 +508,14 @@
                     if (uploadedFiles[i].status !== 'done') {
                         uploadedFiles[i].status = 'uploading';
                         renderFileList();
-                        
-              const result = await uploadToCloudinary(uploadedFiles[i].file);
+                      const result = await uploadToCloudinary(uploadedFiles[i].file);
                 uploadedFiles[i].status = 'done';
-                const fixedUrl = result.secure_url.replace('/image/upload/', '/raw/upload/');
-                uploadedFiles[i].url = fixedUrl;
+                uploadedFiles[i].url = result.secure_url;
                 cloudinaryResults.push({
                     name: uploadedFiles[i].name,
-                    url: fixedUrl
+                    url: result.secure_url
+                });  
+          
                 });
                 renderFileList();
                     }
