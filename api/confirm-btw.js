@@ -191,22 +191,21 @@ export default async function handler(req, res) {
 
             for (const file of uploadedFiles) {
                 try {
-                    const formBody = new URLSearchParams();
-                    formBody.append('file', file.url);
-                    formBody.append('fileName', file.name || 'bestand.pdf');
-                    formBody.append('relationIdentifier', relation.uniqueIdentifier);
-                    formBody.append('taskId', btwTask.id);
-                    formBody.append('tagNames', 'BTW');
-                    formBody.append('documentType', '13');
-                    formBody.append('documentDate', docDate);
+                    const formData = new FormData();
+                    formData.append('file', file.url);
+                    formData.append('fileName', file.name || 'bestand.pdf');
+                    formData.append('relationIdentifier', relation.uniqueIdentifier);
+                    formData.append('taskId', btwTask.id);
+                    formData.append('tagNames', 'BTW');
+                    formData.append('documentType', '13');
+                    formData.append('documentDate', docDate);
 
                     const docRes = await fetch(`${ADMINPULSE_API}/documents/add`, {
                         method: 'POST',
                         headers: {
-                            'Authorization': `Bearer ${apiKey}`,
-                            'Content-Type': 'application/x-www-form-urlencoded'
+                            'Authorization': `Bearer ${apiKey}`
                         },
-                        body: formBody.toString()
+                        body: formData
                     });
 
                     if (docRes.ok) {
