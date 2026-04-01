@@ -215,8 +215,7 @@ export default async function handler(req, res) {
             relation: relationName,
             task: btwTask.name,
             subtask: targetSubtask.name,
-            filesCount: fileCount,
-            docsUploaded
+            filesCount: fileCount
         });
 
     } catch (error) {
