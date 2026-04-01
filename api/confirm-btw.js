@@ -1,6 +1,6 @@
-// BTW-bevestiging API v3.2
-// Features: subtask update, remark, email copy via Google Apps Script
-// Fix: subtaak matching op 'documenten binnen/bevestiging/alles opgeladen' ipv generiek 'documenten'
+// BTW-bevestiging API v3.4
+// Features: subtask update, remark, email via Google Apps Script
+// Fix: subtaak matching + correcte veldmapping GAS-script
 
 const ADMINPULSE_API = 'https://api.adminpulse.be';
 
@@ -28,11 +28,11 @@ export default async function handler(req, res) {
     try {
         const {
             vatNumber,
-            clientEmail,      // Klant e-mailadres
-            sendCopy,         // Boolean: stuur kopie naar klant
-            clientRemark,     // Opmerking van klant
-            recaptchaToken,   // reCAPTCHA response
-            uploadedFiles     // Array van Cloudinary URLs
+            clientEmail,
+            sendCopy,
+            clientRemark,
+            recaptchaToken,
+            uploadedFiles
         } = req.body;
 
         if (!vatNumber) {
@@ -170,7 +170,7 @@ export default async function handler(req, res) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    status: 1,  // In Progress
+                    status: 1,
                     remark: finalRemark
                 })
             }
@@ -208,3 +208,21 @@ export default async function handler(req, res) {
                 console.log('Email failed (non-blocking):', e.message);
             }
         }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Bevestiging succesvol verwerkt',
+            relation: relationName,
+            task: btwTask.name,
+            subtask: targetSubtask.name,
+            filesCount: fileCount
+        });
+
+    } catch (error) {
+        console.error('Error processing confirmation:', error);
+        return res.status(500).json({
+            error: 'Fout bij verwerken van bevestiging',
+            details: error.message
+        });
+    }
+}
