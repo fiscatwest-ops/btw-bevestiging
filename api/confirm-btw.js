@@ -183,20 +183,24 @@ export default async function handler(req, res) {
 
         console.log('Subtask updated successfully');
 
-        // 6. Stuur e-mail via Google Apps Script
+        // 6. Stuur e-mail via Google Apps Script (altijd: backup naar kantoor + optioneel kopie klant)
         const googleScriptUrl = process.env.GOOGLE_SCRIPT_URL;
-        if (googleScriptUrl && sendCopy && clientEmail) {
+        if (googleScriptUrl) {
             try {
                 await fetch(googleScriptUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        to: clientEmail,
-                        relationName,
-                        vatNumber: cleanVat,
-                        taskName: btwTask.name,
-                        fileCount,
-                        dateStr
+                        vatNumber: `BE ${cleanVat}`,
+                        email: clientEmail || '',
+                        sendCopy: !!sendCopy,
+                        message: clientRemark || '',
+                        files: (uploadedFiles || []).map(f => ({ name: f.name || 'bestand', url: f.url })),
+                        adminpulseResult: {
+                            relationName,
+                            taskName: btwTask.name,
+                            subtaskName: targetSubtask.name
+                        }
                     })
                 });
                 console.log('Email sent via Google Apps Script');
@@ -204,21 +208,3 @@ export default async function handler(req, res) {
                 console.log('Email failed (non-blocking):', e.message);
             }
         }
-
-        return res.status(200).json({
-            success: true,
-            message: 'Bevestiging succesvol verwerkt',
-            relation: relationName,
-            task: btwTask.name,
-            subtask: targetSubtask.name,
-            filesCount: fileCount
-        });
-
-    } catch (error) {
-        console.error('Error processing confirmation:', error);
-        return res.status(500).json({
-            error: 'Fout bij verwerken van bevestiging',
-            details: error.message
-        });
-    }
-}
