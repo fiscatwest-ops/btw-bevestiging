@@ -2,7 +2,6 @@
 // Features: subtask update, remark, email copy, backup notification
 
 const ADMINPULSE_API = 'https://api.adminpulse.be';
-const BACKUP_EMAIL = 'fiscatwest@gmail.com';
 
 export default async function handler(req, res) {
     // CORS headers
@@ -19,7 +18,6 @@ export default async function handler(req, res) {
     }
 
     const apiKey = process.env.ADMINPULSE_API_KEY;
-    const resendApiKey = process.env.RESEND_API_KEY;
 
     if (!apiKey) {
         console.error('Missing ADMINPULSE_API_KEY');
@@ -27,8 +25,8 @@ export default async function handler(req, res) {
     }
 
     try {
-        const { 
-            vatNumber, 
+        const {
+            vatNumber,
             clientEmail,      // Klant e-mailadres
             sendCopy,         // Boolean: stuur kopie naar klant
             clientRemark,     // Opmerking van klant
@@ -112,10 +110,10 @@ export default async function handler(req, res) {
         }
 
         const taskDetail = await taskDetailRes.json();
-        
+
         // Zoek subtaak met priority 3 OF naam bevat "documenten"
-        const targetSubtask = taskDetail.subtasks?.find(st => 
-            st.priority === 3 || 
+        const targetSubtask = taskDetail.subtasks?.find(st =>
+            st.priority === 3 ||
             (st.name || '').toLowerCase().includes('documenten')
         );
 
@@ -127,17 +125,17 @@ export default async function handler(req, res) {
 
         // 4. Maak opmerking tekst
         const now = new Date();
-        const dateStr = now.toLocaleDateString('nl-BE', { 
-            day: '2-digit', 
-            month: '2-digit', 
+        const dateStr = now.toLocaleDateString('nl-BE', {
+            day: '2-digit',
+            month: '2-digit',
             year: '2-digit',
             hour: '2-digit',
             minute: '2-digit'
         });
-        
+
         const fileCount = uploadedFiles?.length || 0;
         let newRemarkText = `✓ Bevestigd via CTA knop op ${dateStr}`;
-        
+
         if (clientEmail) {
             newRemarkText += ` | E-mail: ${clientEmail}`;
         }
@@ -145,7 +143,7 @@ export default async function handler(req, res) {
         if (clientRemark && clientRemark.trim()) {
             newRemarkText += `\nOpmerking klant: ${clientRemark.trim()}`;
         }
-        
+
         if (fileCount > 0) {
             newRemarkText += `\nBestanden (${fileCount}):`;
             uploadedFiles.forEach((file, i) => {
@@ -155,7 +153,7 @@ export default async function handler(req, res) {
 
         // Combineer met bestaande opmerking (indien aanwezig)
         const existingRemark = targetSubtask.remark || '';
-        const finalRemark = existingRemark 
+        const finalRemark = existingRemark
             ? `${existingRemark}\n\n---\n${newRemarkText}`
             : newRemarkText;
 
@@ -182,21 +180,26 @@ export default async function handler(req, res) {
 
         console.log('Subtask updated successfully');
 
-        // 6. Stuur e-mail notificaties
-        if (resendApiKey) {
-            const emailResults = await sendNotificationEmails({
-                resendApiKey,
-                relationName,
-                vatNumber: cleanVat,
-                clientEmail,
-                sendCopy,
-                uploadedFiles,
-                dateStr,
-                taskName: btwTask.name
-            });
-            console.log('Email results:', emailResults);
-        } else {
-            console.log('No RESEND_API_KEY configured, skipping emails');
+        // 6. Stuur e-mail via Google Apps Script
+        const googleScriptUrl = process.env.GOOGLE_SCRIPT_URL;
+        if (googleScriptUrl && sendCopy && clientEmail) {
+            try {
+                await fetch(googleScriptUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        to: clientEmail,
+                        relationName,
+                        vatNumber: cleanVat,
+                        taskName: btwTask.name,
+                        fileCount,
+                        dateStr
+                    })
+                });
+                console.log('Email sent via Google Apps Script');
+            } catch (e) {
+                console.log('Email failed (non-blocking):', e.message);
+            }
         }
 
         return res.status(200).json({
@@ -210,108 +213,9 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('Error processing confirmation:', error);
-        return res.status(500).json({ 
+        return res.status(500).json({
             error: 'Fout bij verwerken van bevestiging',
-            details: error.message 
+            details: error.message
         });
     }
-}
-
-async function sendNotificationEmails({ 
-    resendApiKey, 
-    relationName, 
-    vatNumber, 
-    clientEmail, 
-    sendCopy, 
-    uploadedFiles, 
-    dateStr, 
-    taskName 
-}) {
-    const results = { backup: null, client: null };
-    
-    const fileCount = uploadedFiles?.length || 0;
-    const fileList = uploadedFiles?.map((f, i) => 
-        `<li><a href="${f.url}">${f.name || `Bestand ${i + 1}`}</a></li>`
-    ).join('') || '<li>Geen bestanden</li>';
-
-    // HTML template voor kantoor
-    const backupHtml = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px;">
-        <h2 style="color: #2c3e50;">📋 BTW Documenten Bevestigd</h2>
-        <table style="width: 100%; border-collapse: collapse;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Klant:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${relationName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>BTW-nummer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">BE ${vatNumber}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Taak:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${taskName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Datum/tijd:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${dateStr}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>E-mail klant:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${clientEmail || 'Niet opgegeven'}</td></tr>
-        </table>
-        <h3 style="color: #2c3e50; margin-top: 20px;">Opgeladen bestanden (${fileCount}):</h3>
-        <ul>${fileList}</ul>
-        <p style="color: #7f8c8d; font-size: 12px; margin-top: 30px;">
-            Dit is een automatische notificatie van het BTW-bevestigingsformulier.
-        </p>
-    </div>`;
-
-    // Stuur backup e-mail naar kantoor
-    try {
-        const backupRes = await fetch('https://api.resend.com/emails', {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${resendApiKey}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                from: 'BTW Bevestiging <noreply@fiscatwest.be>',
-                to: [BACKUP_EMAIL],
-                subject: `BTW Docs bevestigd: ${relationName} (${vatNumber})`,
-                html: backupHtml
-            })
-        });
-        results.backup = backupRes.ok ? 'sent' : 'failed';
-    } catch (e) {
-        results.backup = 'error: ' + e.message;
-    }
-
-    // Stuur kopie naar klant indien gewenst
-    if (sendCopy && clientEmail) {
-        const clientHtml = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px;">
-            <h2 style="color: #2c3e50;">✅ Bevestiging ontvangen</h2>
-            <p>Beste klant,</p>
-            <p>Wij hebben uw bevestiging voor de BTW-documenten goed ontvangen.</p>
-            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>BTW-nummer:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">BE ${vatNumber}</td></tr>
-                <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Datum/tijd:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${dateStr}</td></tr>
-                <tr><td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>Aantal bestanden:</strong></td><td style="padding: 8px; border-bottom: 1px solid #eee;">${fileCount}</td></tr>
-            </table>
-            <p>Wij verwerken uw aangifte zo snel mogelijk.</p>
-            <p>Met vriendelijke groeten,<br><strong>Fisc@West BV</strong></p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-            <p style="color: #7f8c8d; font-size: 12px;">
-                Fisc@West BV | BE 0562.845.171<br>
-                Dit is een automatisch gegenereerd bericht.
-            </p>
-        </div>`;
-
-        try {
-            const clientRes = await fetch('https://api.resend.com/emails', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${resendApiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    from: 'Fisc@West <noreply@fiscatwest.be>',
-                    to: [clientEmail],
-                    subject: 'Bevestiging BTW-documenten ontvangen',
-                    html: clientHtml
-                })
-            });
-            results.client = clientRes.ok ? 'sent' : 'failed';
-        } catch (e) {
-            results.client = 'error: ' + e.message;
-        }
-    }
-
-    return results;
 }
