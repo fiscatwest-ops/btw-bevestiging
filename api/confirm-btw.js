@@ -183,6 +183,46 @@ export default async function handler(req, res) {
 
         console.log('Subtask updated successfully');
 
+        // 5b. Upload documenten naar AdminPulse (Cloudinary URLs)
+        let docsUploaded = 0;
+        if (uploadedFiles && uploadedFiles.length > 0) {
+            const today = new Date();
+            const docDate = `${String(today.getDate()).padStart(2,'0')}${String(today.getMonth()+1).padStart(2,'0')}${today.getFullYear()}`;
+
+            for (const file of uploadedFiles) {
+                try {
+                    const formBody = new URLSearchParams();
+                    formBody.append('file', file.url);
+                    formBody.append('fileName', file.name || 'bestand.pdf');
+                    formBody.append('relationIdentifier', relation.uniqueIdentifier);
+                    formBody.append('taskId', btwTask.id);
+                    formBody.append('tagNames', 'BTW');
+                    formBody.append('documentType', '13');
+                    formBody.append('documentDate', docDate);
+
+                    const docRes = await fetch(`${ADMINPULSE_API}/documents/add`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${apiKey}`,
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: formBody.toString()
+                    });
+
+                    if (docRes.ok) {
+                        docsUploaded++;
+                        console.log(`Document uploaded: ${file.name || file.url}`);
+                    } else {
+                        const errText = await docRes.text();
+                        console.log(`Document upload failed: ${docRes.status} - ${errText}`);
+                    }
+                } catch (e) {
+                    console.log(`Document upload error (non-blocking): ${e.message}`);
+                }
+            }
+            console.log(`Documents uploaded: ${docsUploaded}/${uploadedFiles.length}`);
+        }
+
         // 6. Stuur e-mail via Google Apps Script (altijd: backup naar kantoor + optioneel kopie klant)
         const googleScriptUrl = process.env.GOOGLE_SCRIPT_URL;
         if (googleScriptUrl) {
@@ -215,7 +255,8 @@ export default async function handler(req, res) {
             relation: relationName,
             task: btwTask.name,
             subtask: targetSubtask.name,
-            filesCount: fileCount
+            filesCount: fileCount,
+            docsUploaded
         });
 
     } catch (error) {
