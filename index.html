@@ -509,15 +509,15 @@
                         uploadedFiles[i].status = 'uploading';
                         renderFileList();
                         
-                        const result = await uploadToCloudinary(uploadedFiles[i].file);
-                        uploadedFiles[i].status = 'done';
-                        uploadedFiles[i].url = fixedUrl;
-const fixedUrl = result.secure_url.replace('/image/upload/', '/raw/upload/');
-                        cloudinaryResults.push({
-                            name: uploadedFiles[i].name,
-                            url: fixedUrl
-                        });
-                        renderFileList();
+              const result = await uploadToCloudinary(uploadedFiles[i].file);
+                uploadedFiles[i].status = 'done';
+                const fixedUrl = result.secure_url.replace('/image/upload/', '/raw/upload/');
+                uploadedFiles[i].url = fixedUrl;
+                cloudinaryResults.push({
+                    name: uploadedFiles[i].name,
+                    url: fixedUrl
+                });
+                renderFileList();
                     }
                 }
 
