@@ -1,5 +1,6 @@
-// BTW-bevestiging API v3
-// Features: subtask update, remark, email copy, backup notification
+// BTW-bevestiging API v3.2
+// Features: subtask update, remark, email copy via Google Apps Script
+// Fix: subtaak matching op 'documenten binnen/bevestiging/alles opgeladen' ipv generiek 'documenten'
 
 const ADMINPULSE_API = 'https://api.adminpulse.be';
 
@@ -111,11 +112,13 @@ export default async function handler(req, res) {
 
         const taskDetail = await taskDetailRes.json();
 
-        // Zoek subtaak met priority 3 OF naam bevat "documenten"
-        const targetSubtask = taskDetail.subtasks?.find(st =>
-            st.priority === 3 ||
-            (st.name || '').toLowerCase().includes('documenten')
-        );
+        // Zoek subtaak: eerst op specifieke naam, dan fallback op priority 3
+        const targetSubtask = taskDetail.subtasks?.find(st => {
+            const name = (st.name || '').toLowerCase();
+            return name.includes('documenten binnen') ||
+                   name.includes('bevestiging') ||
+                   name.includes('alles opgeladen');
+        }) || taskDetail.subtasks?.find(st => st.priority === 3);
 
         if (!targetSubtask) {
             return res.status(404).json({ error: 'Subtaak voor documentbevestiging niet gevonden' });
