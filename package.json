@@ -1,7 +1,7 @@
 {
   "name": "btw-bevestiging",
   "version": "2.0.0",
-  "type": "module",
-  "description": "BTW-documenten bevestiging formulier - Fisc@West BV",
-  "private": true
+  "private": true,
+  "description": "BTW Documenten Bevestiging - Fisc@West BV",
+  "dependencies": {}
 }

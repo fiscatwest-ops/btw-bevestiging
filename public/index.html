@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTW Documenten Bevestiging | Fisc@West BV</title>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #2d3748;
+            background-color: #1a365d;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 32px 16px;
+        }
+
+        .container {
+            background: #ffffff;
+            max-width: 520px;
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #1a365d;
+            color: #ffffff;
+            padding: 28px 24px;
+            text-align: center;
+            border-bottom: 4px solid #c05621;
+        }
+        .header h1 { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+        .header p { font-size: 13px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+
+        .form-container { padding: 28px 24px; }
+
+        .info-box {
+            background: #fffaf0;
+            border-left: 4px solid #c05621;
+            padding: 14px 16px;
+            margin-bottom: 24px;
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+            color: #4a5568;
+        }
+
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: 700; margin-bottom: 6px; font-size: 14px; color: #1a365d; }
+        label .required { color: #c05621; }
+
+        input[type="text"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #c05621;
+        }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .checkbox-group input { width: 18px; height: 18px; accent-color: #c05621; }
+
+        /* UPLOAD ZONE */
+        .upload-zone {
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            padding: 28px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #f7fafc;
+            margin-bottom: 8px;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #c05621;
+            background: #fffaf0;
+        }
+        .upload-icon { font-size: 32px; color: #c05621; margin-bottom: 8px; }
+        .upload-zone p { font-size: 14px; color: #4a5568; }
+        .upload-zone .hint { font-size: 12px; color: #a0aec0; margin-top: 4px; }
+        .upload-zone input { display: none; }
+
+        .file-list { list-style: none; margin-top: 8px; }
+        .file-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            background: #f7fafc;
+            border-radius: 4px;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        .file-list li .remove {
+            color: #e53e3e;
+            cursor: pointer;
+            font-weight: 700;
+            border: none;
+            background: none;
+            font-size: 16px;
+        }
+        .file-list li .uploading { color: #c05621; font-size: 12px; }
+        .file-list li .done { color: #38a169; font-size: 12px; }
+        .file-list li .error { color: #e53e3e; font-size: 12px; }
+
+        /* RECAPTCHA */
+        .recaptcha-container { margin-bottom: 20px; display: flex; justify-content: center; }
+
+        /* BUTTON */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #c05621;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit:hover { background: #9c4221; }
+        .btn-submit:disabled { background: #cbd5e0; cursor: not-allowed; }
+
+        /* STATUS MESSAGES */
+        .status { margin-top: 16px; padding: 14px 16px; border-radius: 6px; font-size: 14px; display: none; }
+        .status.success { display: block; background: #f0fff4; border: 1px solid #c6f6d5; color: #276749; }
+        .status.error { display: block; background: #fff5f5; border: 1px solid #fed7d7; color: #9b2c2c; }
+        .status.loading { display: block; background: #ebf8ff; border: 1px solid #bee3f8; color: #2b6cb0; }
+
+        /* FOOTER */
+        .footer {
+            background: #1a365d;
+            padding: 16px 24px;
+            text-align: center;
+        }
+        .footer p { color: #cbd5e0; font-size: 11px; margin: 2px 0; }
+        .footer a { color: #cbd5e0; text-decoration: none; }
+
+        .footer-help {
+            padding: 12px 24px;
+            text-align: center;
+            font-size: 12px;
+            color: #a0aec0;
+            background: #f7fafc;
+        }
+        .footer-help a { color: #c05621; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>&#128196; BTW Documenten Bevestiging</h1>
+            <p>Fisc@West BV</p>
+        </div>
+
+        <div class="form-container">
+            <div class="info-box">
+                Bevestig dat u alle nodige documenten heeft opgeladen voor uw BTW-aangifte.
+                U kunt hieronder ook extra documenten toevoegen.
+            </div>
+
+            <form id="btwForm" onsubmit="return false;">
+                <!-- BTW-NUMMER -->
+                <div class="form-group">
+                    <label>BTW-nummer <span class="required">*</span></label>
+                    <input type="text" id="vatNumber" placeholder="BE 0123.456.789" required>
+                </div>
+
+                <!-- E-MAIL -->
+                <div class="form-group">
+                    <label>Uw e-mailadres</label>
+                    <input type="email" id="email" placeholder="uw.email@voorbeeld.be">
+                </div>
+
+                <!-- CHECKBOX -->
+                <div class="checkbox-group">
+                    <input type="checkbox" id="wantsEmailCopy" checked>
+                    <label for="wantsEmailCopy" style="font-weight: 400; margin: 0; color: #4a5568;">
+                        Stuur mij een bevestiging per e-mail
+                    </label>
+                </div>
+
+                <!-- OPMERKING -->
+                <div class="form-group">
+                    <label>Opmerking <span style="font-weight:400; color:#a0aec0;">(optioneel)</span></label>
+                    <textarea id="message" placeholder="Eventuele opmerkingen of vragen..."></textarea>
+                </div>
+
+                <!-- UPLOAD -->
+                <div class="form-group">
+                    <label>Documenten toevoegen <span style="font-weight:400; color:#a0aec0;">(optioneel)</span></label>
+                    <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click();">
+                        <div class="upload-icon">&#9729;</div>
+                        <p>Klik of sleep bestanden hierheen</p>
+                        <p class="hint">Max 10 bestanden, elk max 10MB</p>
+                        <input type="file" id="fileInput" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.csv,.xml">
+                    </div>
+                    <ul class="file-list" id="fileList"></ul>
+                </div>
+
+                <!-- RECAPTCHA -->
+                <div class="recaptcha-container">
+                    <div class="g-recaptcha" data-sitekey="6Ld9cFksAAAAAPAvlhk9kRFWANwvAvHa3pm-ORSJ"></div>
+                </div>
+
+                <!-- SUBMIT -->
+                <button type="button" class="btn-submit" id="submitBtn" onclick="handleSubmit()">
+                    &#10003; Bevestigen
+                </button>
+
+                <!-- STATUS -->
+                <div class="status" id="statusMsg"></div>
+            </form>
+        </div>
+
+        <div class="footer-help">
+            Werkt de link niet? Stuur een bericht naar: 
+            <a href="mailto:david@fiscatwest.be">david@fiscatwest.be</a>
+        </div>
+
+        <div class="footer">
+            <p>FISC@WEST BV | BE 0562.845.171</p>
+            <p><a href="https://www.fiscatwest.be">WWW.FISCATWEST.BE</a></p>
+        </div>
+    </div>
+
+<script>
+// ─── CLOUDINARY CONFIG ────────────────────────────────────
+const CLOUDINARY_CLOUD = 'dssqewl7x';
+const CLOUDINARY_PRESET = 'btw-bevestiging';
+
+// ─── STATE ────────────────────────────────────────────────
+let uploadedFiles = []; // { name, url, status }
+
+// ─── DRAG & DROP ──────────────────────────────────────────
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadZone.classList.add('dragover');
+});
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadZone.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
+
+function handleFiles(files) {
+    const remaining = 10 - uploadedFiles.length;
+    const toProcess = Array.from(files).slice(0, remaining);
+    
+    toProcess.forEach(file => {
+        if (file.size > 10 * 1024 * 1024) {
+            showStatus(`${file.name} is te groot (max 10MB)`, 'error');
+            return;
+        }
+        uploadToCloudinary(file);
+    });
+}
+
+async function uploadToCloudinary(file) {
+    const idx = uploadedFiles.length;
+    uploadedFiles.push({ name: file.name, url: null, status: 'uploading' });
+    renderFileList();
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('folder', 'btw-bevestiging');
+
+    try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/auto/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        const data = await res.json();
+        
+        if (data.secure_url) {
+            uploadedFiles[idx].url = data.secure_url;
+            uploadedFiles[idx].status = 'done';
+        } else {
+            uploadedFiles[idx].status = 'error';
+        }
+    } catch (err) {
+        uploadedFiles[idx].status = 'error';
+    }
+    renderFileList();
+}
+
+function removeFile(idx) {
+    uploadedFiles.splice(idx, 1);
+    renderFileList();
+}
+
+function renderFileList() {
+    const list = document.getElementById('fileList');
+    list.innerHTML = uploadedFiles.map((f, i) => `
+        <li>
+            <span>${f.name}</span>
+            <span>
+                ${f.status === 'uploading' ? '<span class="uploading">⏳ Uploading...</span>' : ''}
+                ${f.status === 'done' ? '<span class="done">✓</span>' : ''}
+                ${f.status === 'error' ? '<span class="error">✗ Fout</span>' : ''}
+                <button class="remove" onclick="removeFile(${i})" title="Verwijderen">&times;</button>
+            </span>
+        </li>
+    `).join('');
+}
+
+// ─── BTW FORMAT ───────────────────────────────────────────
+document.getElementById('vatNumber').addEventListener('blur', function() {
+    let val = this.value.replace(/[^0-9]/g, '');
+    if (val.length >= 9 && val.length <= 10) {
+        if (val.length === 9) val = '0' + val;
+        this.value = `BE ${val.substring(0,4)}.${val.substring(4,7)}.${val.substring(7,10)}`;
+    }
+});
+
+// ─── SUBMIT ───────────────────────────────────────────────
+async function handleSubmit() {
+    const btn = document.getElementById('submitBtn');
+    const vatInput = document.getElementById('vatNumber').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const wantsEmailCopy = document.getElementById('wantsEmailCopy').checked;
+    const message = document.getElementById('message').value.trim();
+    const recaptchaToken = grecaptcha.getResponse();
+
+    // Validatie
+    const vatClean = vatInput.replace(/[^0-9]/g, '');
+    if (vatClean.length < 9) {
+        showStatus('Vul een geldig BTW-nummer in.', 'error');
+        return;
+    }
+    if (wantsEmailCopy && !email) {
+        showStatus('Vul uw e-mailadres in om een bevestiging te ontvangen.', 'error');
+        return;
+    }
+    if (!recaptchaToken) {
+        showStatus('Bevestig dat u geen robot bent.', 'error');
+        return;
+    }
+    if (uploadedFiles.some(f => f.status === 'uploading')) {
+        showStatus('Wacht tot alle bestanden zijn geüpload.', 'error');
+        return;
+    }
+
+    // Disable button
+    btn.disabled = true;
+    btn.textContent = '⏳ Bezig met verwerken...';
+    showStatus('Uw bevestiging wordt verwerkt...', 'loading');
+
+    // Bouw payload
+    const payload = {
+        vatNumber: vatClean,
+        vatNumberFormatted: vatInput,
+        email: email || null,
+        wantsEmailCopy,
+        message: message || null,
+        fileUrls: uploadedFiles.filter(f => f.status === 'done').map(f => f.url),
+        fileNames: uploadedFiles.filter(f => f.status === 'done').map(f => f.name),
+        recaptchaToken,
+        timestamp: new Date().toISOString()
+    };
+
+    try {
+        const res = await fetch('/api/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            showStatus(
+                `<strong>✓ Bevestiging ontvangen!</strong><br>
+                Klant: ${vatInput}<br>
+                Taak: ${data.details.taskFound || 'BTW-aangifte'}<br>
+                Bestanden: ${uploadedFiles.length}<br>
+                ${data.details.clientMailSent ? 'Een bevestiging is naar uw e-mail verzonden.' : ''}`,
+                'success'
+            );
+            // Reset form
+            document.getElementById('btwForm').reset();
+            uploadedFiles = [];
+            renderFileList();
+            grecaptcha.reset();
+            btn.textContent = '✓ Verzonden!';
+        } else {
+            showStatus(`Er ging iets mis: ${data.error || 'Onbekende fout'}`, 'error');
+            btn.disabled = false;
+            btn.textContent = '✓ Bevestigen';
+            grecaptcha.reset();
+        }
+    } catch (err) {
+        showStatus('Verbindingsfout. Probeer het opnieuw.', 'error');
+        btn.disabled = false;
+        btn.textContent = '✓ Bevestigen';
+        grecaptcha.reset();
+    }
+}
+
+function showStatus(msg, type) {
+    const el = document.getElementById('statusMsg');
+    el.innerHTML = msg;
+    el.className = `status ${type}`;
+}
+</script>
+</body>
+</html>

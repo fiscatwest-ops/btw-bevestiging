@@ -1,108 +1,46 @@
-# BTW-Bevestiging v2 — Directe AdminPulse API
+# BTW Documenten Bevestiging — Fisc@West BV (v2)
 
-Dit is versie 2 van het BTW-bevestigingsformulier. 
-**Geen Zapier meer!** Directe API calls naar AdminPulse.
+CTA-formulier waarmee klanten bevestigen dat ze alle BTW-documenten hebben opgeladen.
 
-## Wat doet dit?
+## Wat gebeurt er bij bevestiging?
 
-1. Klant vult BTW-nummer in op het formulier
-2. Klant uploadt optioneel extra documenten (naar Cloudinary)
-3. Klant bevestigt dat alles is opgeladen
-4. Vercel serverless function zoekt de klant in AdminPulse
-5. Subtaak "Alle documenten binnen..." wordt op **In Progress** gezet
+1. **AdminPulse** subtaak → "In Progress"
+2. **AdminPulse** documenten geüpload (Cloudinary URLs)
+3. **Mail naar klant** — bevestiging in Fisc@West huisstijl
+4. **Mail naar fiscatwest@gmail.com** — backup met AdminPulse status
+5. **Google Sheet** — logging van alle bevestigingen
 
-## Project Structuur
+## Structuur
 
 ```
-btw-bevestiging-v2/
 ├── api/
-│   └── confirm-btw.js    # Vercel serverless function
+│   └── confirm.js            # Vercel serverless (AdminPulse + trigger emails)
 ├── public/
-│   └── index.html        # Frontend formulier
-├── vercel.json           # Vercel configuratie
+│   └── index.html            # Frontend formulier
+├── google-apps-script.js     # PLAK IN script.google.com (niet deployen via Vercel)
 ├── package.json
-└── README.md
+└── vercel.json
 ```
 
-## Deployment naar Vercel
+## Setup
 
-### Stap 1: Push naar GitHub
+### 1. Google Apps Script (e-mails)
+1. Ga naar script.google.com → Nieuw project
+2. Plak inhoud van `google-apps-script.js`
+3. Implementeren → Nieuwe implementatie → Web-app
+4. Uitvoeren als: Ik | Toegang: Iedereen
+5. Kopieer de URL
 
-```bash
-git init
-git add .
-git commit -m "v2: Directe AdminPulse API (geen Zapier)"
-git remote add origin https://github.com/fiscatwest-ops/btw-bevestiging.git
-git push -u origin main --force
-```
+### 2. Vercel Environment Variables
+| Variabele | Waarde |
+|-----------|--------|
+| `ADMINPULSE_API_KEY` | Bearer API key |
+| `RECAPTCHA_SECRET_KEY` | reCAPTCHA v2 secret |
+| `GOOGLE_SCRIPT_URL` | URL uit stap 1 |
 
-### Stap 2: Environment Variable instellen
+### 3. Deploy
+Push naar GitHub → Vercel deployed automatisch.
 
-In Vercel Dashboard → Settings → Environment Variables:
-
-| Key | Value |
-|-----|-------|
-| `ADMINPULSE_API_KEY` | Je AdminPulse Bearer token |
-
-⚠️ **Belangrijk:** Gebruik de API key uit je `.env` bestand of uit het PDF-bestand met credentials.
-
-### Stap 3: Deploy
-
-Vercel deployed automatisch bij push naar main.
-
-## API Endpoint
-
-```
-POST /api/confirm-btw
-
-Body:
-{
-  "vatNumber": "0562845171",
-  "message": "Optionele mededeling",
-  "fileUrls": [
-    {"name": "factuur.pdf", "url": "https://cloudinary.com/..."}
-  ]
-}
-
-Response (success):
-{
-  "success": true,
-  "message": "Bevestiging succesvol verwerkt",
-  "relation": {
-    "name": "Fisc@West BV",
-    "uniqueIdentifier": "APR00001",
-    "vatNumber": "0562845171"
-  },
-  "task": {
-    "name": "BTW-aangifte",
-    "deadline": "2026-04-20T00:00:00",
-    "subtask": "Alle documenten binnen...",
-    "newStatus": "In Progress"
-  }
-}
-```
-
-## Belangrijke Learnings
-
-1. **APR-code gebruiken, niet UUID** — AdminPulse verwacht de Unique Identifier (APR00001)
-2. **Datumformaat AdminPulse:** `ddMMyyyy` voor query parameters
-3. **Status codes:** 0 = To-do, 1 = In Progress, 2 = Done
-4. **Rate limit:** 480 calls/min
-
-## Cloudinary Configuratie
-
-| Setting | Value |
-|---------|-------|
-| Cloud name | `dssqewl7x` |
-| Upload preset | `btw-bevestiging` |
-| Signing mode | Unsigned |
-
-## reCAPTCHA
-
-- Site key: `6Ld9cFksAAAAAPAvlhk9kRFWANwvAvHa3pm-ORSJ`
-- Secret key: (zie memory/env)
-
----
-
-*Fisc@West BV — David Debruyne*
-*Versie 2.0 — Maart 2026*
+## Versies
+- v1: Zapier webhook flow (januari 2026)
+- v2: Vercel serverless + Google Apps Script (maart 2026) — geen Zapier meer
